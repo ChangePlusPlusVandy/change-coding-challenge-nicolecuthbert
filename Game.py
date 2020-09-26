@@ -1,16 +1,16 @@
 import requests
 import random
-import time
 from tkinter import *
 from tkinter import font
 
 HEIGHT = 400
 WIDTH = 600
-MAX_ROUNDS = 3
-
+MAX_ROUNDS = 5
 choice = None
-rounds = 0
-score = 0
+rounds = 0  # rounds completed so far
+score = 0  # number of correct guesses
+
+root = Tk()
 
 
 def authorize():
@@ -49,42 +49,49 @@ def pullTweets(username):
     return userTweets
 
 
-# sets guess based on which button was clicked
+# create lists of tweets
+user1 = pullTweets("elonmusk")
+user2 = pullTweets("kanyewest")
+
+
+# sets choice based on which button was clicked
 def update(username):
     global choice
     choice = username
 
 
-def endRound(root, user1, user2, answer):
+def endRound(answer):
+    global root, user1, user2, score, rounds
+
     # evaluate if correct
     global choice
     if choice is answer:
+        score += 1
         resultLbl = Label(root, text="Correct!", fg="limegreen", bg="midnightblue",
                           font=("Helvetica", 32, font.BOLD))
-        global score
-        score += 1
     else:
-        resultLbl = Label(root, text="Wrong!", fg="red3", bg="midnightblue",
+        resultLbl = Label(root, text="Wrong :(", fg="red4", bg="midnightblue",
                           font=("Helvetica", 32, font.BOLD))
+
+    resultLbl.pack()
+    resultLbl.place(x=WIDTH / 2 - 60, y=10)
+
+    # reset guess
     choice = None
 
-    # display whether guess was correct
-    resultLbl.pack()
-    resultLbl.place(x=WIDTH / 2 - 120, y=HEIGHT / 2 - 50)
-
     # update number of rounds completed
-    global rounds
     rounds += 1
 
-    # determine if game should be over
-    resultLbl.destroy()
+    # determine next steps
     if rounds < MAX_ROUNDS:
-        playRound(root, user1, user2)
+        playRound()
     else:
-        endGame(root)
+        endGame()
 
 
-def endGame(root):
+def endGame():
+    global root
+
     # display player's score
     endLbl = Label(root, text=f"You Scored {score}/{rounds}!", fg="turquoise2", bg="midnightblue",
                    font=("Helvetica", 32, font.BOLD))
@@ -98,7 +105,9 @@ def endGame(root):
     endBtn.place(x=WIDTH / 2 - 65, y=HEIGHT / 2 + 60)
 
 
-def selectTweet(user1, user2):
+def selectTweet():
+    global user1, user2
+
     # randomly picks 1 of 2 twitter accounts
     accountChoice = random.randint(1, 2)
     if accountChoice is 1:
@@ -114,9 +123,11 @@ def selectTweet(user1, user2):
     return tweetText, answer
 
 
-def playRound(root, user1, user2):
+def playRound():
+    global root, user1, user2
+
     # pick random tweet
-    tweetText, answer = selectTweet(user1, user2)
+    tweetText, answer = selectTweet()
 
     # display tweet text
     tweetLbl = Label(root, text=tweetText, fg="white", bg="midnightblue", justify=CENTER, wraplength=300,
@@ -126,8 +137,7 @@ def playRound(root, user1, user2):
 
     # button to pick elon as answer
     elonBtn = Button(root, text="Elon Musk", font=("Helvetica", 18))
-    elonBtn.configure(command=lambda: [elonBtn.destroy(), kanyeBtn.destroy(), tweetLbl.destroy(), update("elon"),
-                                       endRound(root, user1, user2, answer)])
+    elonBtn.configure(command=lambda: [update("elon"), endRound(answer), elonBtn.destroy(), kanyeBtn.destroy(), tweetLbl.destroy()])
     elonBtn.pack()
     elonBtn.place(x=WIDTH / 2 - 100, y=HEIGHT - 75)
 
@@ -135,14 +145,15 @@ def playRound(root, user1, user2):
     kanyeBtn = Button(root, text="Kanye West", font=("Helvetica", 18))
     kanyeBtn.configure(
         command=lambda: [elonBtn.destroy(), kanyeBtn.destroy(), tweetLbl.destroy(), update("kanye"),
-                         endRound(root, user1, user2, answer)])
+                         endRound(answer)])
     kanyeBtn.pack()
     kanyeBtn.place(x=WIDTH / 2 + 20, y=HEIGHT - 75)
 
 
 def main():
+    global root
+
     # create gui window
-    root = Tk()
     root.geometry(f"{WIDTH}x{HEIGHT}")
     root.title("Who Tweeted That?")
     root.configure(bg="midnightblue")
@@ -155,13 +166,9 @@ def main():
 
     # button to start playing game
     startBtn = Button(root, text="Start game", font=("Helvetica", 24, font.BOLD))
-    startBtn.configure(command=lambda: [startBtn.destroy(), welcomeLbl.destroy(), playRound(root, elon, kanye)])
+    startBtn.configure(command=lambda: [startBtn.destroy(), welcomeLbl.destroy(), playRound()])
     startBtn.pack()
     startBtn.place(x=WIDTH / 2 - 65, y=HEIGHT / 2 + 60)
-
-    # create lists of tweets
-    elon = pullTweets("elonmusk")
-    kanye = pullTweets("kanyewest")
 
     # deploy window
     root.resizable(0, 0)
