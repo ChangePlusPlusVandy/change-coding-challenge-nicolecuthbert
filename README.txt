@@ -2,6 +2,8 @@ Pretty much the entirety of this project was built using things that I taught my
 
 I authenticated the Twitter API using a bearer token kept in a separate file. I can edit my code to include it if that would be better for you.
 
+EDIT: bearer token in tokens.txt file
+
 If for whatever reason the project does not work as intended, I included a video of what it should be.
 
 
